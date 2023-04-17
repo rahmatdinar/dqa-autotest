@@ -1,0 +1,6 @@
+{
+    "port": "COM6",
+    "configuration": "cpu=atmega328old",
+    "board": "arduino:avr:nano",
+    "sketch": "remote.ino"
+}
