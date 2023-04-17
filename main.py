@@ -15,12 +15,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 current_time = datetime.datetime.now()
 unique_img = "/"+ current_time.strftime("_%Y%m%d_%H%M")+ "/"
 unique_file = current_time.strftime("_%Y%m%d_%H%M")+".csv"
-img_folder_path = "./data_test/img/"
-data_test_path = './data_test/'
-data_txt_ref_path = './data_reference/data_txt_ref_'
-data_res_path = './data_result/'
-data_resXlsx_path = './data_result/'
-fonts = './fonts/1942.ttf'
+img_folder_path = "./data-dir/data_test/img/"
+data_test_path = './data-dir/data_test/'
+data_txt_ref_path = './data-dir/data_reference/data_txt_ref_'
+data_res_path = './data-dir/data_result/'
+fonts = './font-dir/fonts/1942.ttf'
 
 i = 0
 i_max = 5
