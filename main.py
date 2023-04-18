@@ -154,7 +154,7 @@ while main_test:
             test_file.close()
 
             #save detected images
-            if saveDetectedImFeature == True:
+            if saveDetectedImFeature:
                 boxes = [line[0] for line in result[0]]
                 scores = [line[1][1] for line in result[0]]
                 imagePost_ = draw_ocr(images_, boxes, txts, scores, font_path=fonts)
