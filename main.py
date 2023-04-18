@@ -29,7 +29,6 @@ prepare_stage = True
 takeShot_stage = False
 previousMillis = 2000
 previousMillisWaitingNoResponse = 2500
-waitingNoResponseInterval = 11000
 start_time = time.monotonic() * 1000
 cap = cv.VideoCapture(0)
 cap.set(cv.CAP_PROP_EXPOSURE, -9)
@@ -38,7 +37,6 @@ ocr = PaddleOCR(use_angle_cls=True, lang='en')
 currentRow =2 #2 for starting row both in data_test and refs
 skipHeader = True
 startingRefRow = 0
-saveDetectedImFeature = True
 
 def millis():
     return int(round((time.monotonic() * 1000) - start_time))
@@ -100,11 +98,11 @@ while len(checkArduinoPorts())<=0:
 
 arduinoPort = checkArduinoPorts()
 serial_ = serial.Serial(arduinoPort[0], 115200, timeout=1)
-print("arduino port detected: ", arduinoPort)
-main_test = True
-
-choice = str(input("select test types [dtv, atv, usb]: "))
+print("arduino port detected: ", arduinoPort); main_test = True
+choice = str(input("select test types [dtv, atv, usb]: ").lower())
+saveDetectedImFeature = str(input("save documentation (1/0): "))
 serial_.write(choice.encode())
+# saveDetectedImFeature = input("want to save the docs [True or False]: ")
 while main_test:
     ret, frame = cap.read(0)
     cv.imshow('cam_original', frame)
@@ -154,7 +152,7 @@ while main_test:
             test_file.close()
 
             #save detected images
-            if saveDetectedImFeature:
+            if saveDetectedImFeature == "1":
                 boxes = [line[0] for line in result[0]]
                 scores = [line[1][1] for line in result[0]]
                 imagePost_ = draw_ocr(images_, boxes, txts, scores, font_path=fonts)
