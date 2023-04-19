@@ -31,12 +31,14 @@ previousMillis = 2000
 previousMillisWaitingNoResponse = 2500
 start_time = time.monotonic() * 1000
 cap = cv.VideoCapture(0)
-cap.set(cv.CAP_PROP_EXPOSURE, -9)
 main_test = False
 ocr = PaddleOCR(use_angle_cls=True, lang='en')
 currentRow =2 #2 for starting row both in data_test and refs
 skipHeader = True
 startingRefRow = 0
+composure = -7
+contrast = 1.0
+brightness = 50
 
 def millis():
     return int(round((time.monotonic() * 1000) - start_time))
@@ -97,6 +99,7 @@ while len(checkArduinoPorts())<=0:
     checkArduinoPorts()
 
 arduinoPort = checkArduinoPorts()
+cap.set(cv.CAP_PROP_EXPOSURE, composure)
 serial_ = serial.Serial(arduinoPort[0], 115200, timeout=1)
 print("arduino port detected: ", arduinoPort); main_test = True
 choice = str(input("select test types [dtv, atv, usb]: ").lower())
@@ -162,9 +165,27 @@ while main_test:
         else: print(dataRx); pass
 
     if key == 113:
-            dataTx = "Abort"
-            serial_.write(dataTx.encode())
-            break
+        dataTx = "abort"
+        serial_.write(dataTx.encode())
+        break
+    elif key == (119 or 87): # w key
+        composure+=0.1
+        cap.set(cv.CAP_PROP_EXPOSURE, composure)
+    elif key == (115 or 83): # s key
+        composure-=0.5
+        cap.set(cv.CAP_PROP_EXPOSURE, composure)
+    elif key == (97 or 65): # a key
+        brightness-=5
+        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+    elif key == (100 or 68): # d key
+        brightness+=2
+        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+    elif key == (102 or 70): # d key
+        contrast-=0.3
+        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+    elif key == (104 or 72): # d key
+        contrast+=0.1
+        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
     else: pass
 serial_.close()
 cap.release()

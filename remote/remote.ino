@@ -131,12 +131,6 @@ typedef enum
     KEY_NULL = 0xFF,
 } EN_KEY;
 
-#define STAGE1 0
-#define STAGE2 1
-#define STAGE3 2
-#define STAGE4 3
-#define STAGEMAX 0xff
-
 typedef enum
 {
     SEQUENCE0_STAGE1 = 0,
@@ -392,6 +386,8 @@ uint32_t encodeData(uint16_t address, uint16_t command)
     }
 }
 
+void(*resetFunc) (void) = 0;
+
 void setup(){
     Serial.begin(115200);
     // Serial.println("Sequence IR");
@@ -409,7 +405,7 @@ void setup(){
 #endif
 }
 
-int zero(){
+uint16_t zero(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -417,7 +413,7 @@ int zero(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int one(){
+uint16_t one(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -425,7 +421,7 @@ int one(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int four(){
+uint16_t four(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -433,7 +429,7 @@ int four(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int menu(){
+uint16_t menu(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            
@@ -441,7 +437,7 @@ int menu(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; 
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int enter(){
+uint16_t enter(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -449,7 +445,7 @@ int enter(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int atas(){
+uint16_t atas(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -457,7 +453,7 @@ int atas(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int bawah(){
+uint16_t bawah(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -465,7 +461,7 @@ int bawah(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int kanan(){
+uint16_t kanan(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -473,7 +469,7 @@ int kanan(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int kiri(){
+uint16_t kiri(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -481,7 +477,7 @@ int kiri(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int back(){
+uint16_t back(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -489,7 +485,7 @@ int back(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int power(){
+uint16_t power(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -497,7 +493,7 @@ int power(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int source(){
+uint16_t source(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -505,7 +501,7 @@ int source(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-int mute(){
+uint16_t mute(){
     qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
@@ -630,7 +626,7 @@ void loop(){
             Serial.write(finishedCommand.c_str());
         }
         if(data == "abort"){
-            exit(0);
+            resetFunc();
             
             // Serial.write(takeImageCommand.c_str());
             // delay(20);
