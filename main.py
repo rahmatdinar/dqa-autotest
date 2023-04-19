@@ -180,10 +180,10 @@ while main_test:
     elif key == (100 or 68): # d key
         brightness+=2
         cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
-    elif key == (102 or 70): # d key
+    elif key == (102 or 70): # f key
         contrast-=0.3
         cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
-    elif key == (104 or 72): # d key
+    elif key == (104 or 72): # h key
         contrast+=0.1
         cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
     else: pass
