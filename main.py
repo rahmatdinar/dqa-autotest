@@ -40,8 +40,61 @@ composure = -7
 contrast = 1.0
 brightness = 50
 
-def millis():
-    return int(round((time.monotonic() * 1000) - start_time))
+KEY = {
+    "enter" : 13,
+    "backspace" : 8,
+    "escape" : 27,
+    "tab" : 9,
+    "shift" : 16,
+    "ctrl" : 17,
+    "alt" : 18,
+    "pause" : 19,
+    "capslock" : 20,
+    "page up" : 33,
+    "page down" : 34,
+    "end" : 35,
+    "home" : 36,
+    "left_arrow": 37,
+    "right_arrow": 39,
+    "up_arrow": 38,
+    "down_arrow": 40,
+    "zero": 48,
+    "one": 49,
+    "two": 50,
+    "three": 51,
+    "four": 52,
+    "five": 53,
+    "six": 54,
+    "seven": 56,
+    "eight": 57,
+    "nine": 58,
+    "a" : 65,
+    "b" : 66,
+    "c" : 67,
+    "d" : 68,
+    "e" : 69,
+    "f" : 70,
+    "g" : 71,
+    "h" : 72,
+    "i" : 73,
+    "j" : 74,
+    "k" : 75,
+    "l" : 76,
+    "m" : 77,
+    "n" : 78,
+    "o" : 79,
+    "p" : 80,
+    "q" : 81,
+    "r" : 82,
+    "s" : 83,
+    "t" : 84,
+    "u" : 85,
+    "v" : 86,
+    "w" : 87,
+    "x" : 88,
+    "y" : 89,
+    "z" : 90,
+}
 
 def checkArduinoPorts():
     serial.tools.list_ports.comports()
@@ -101,16 +154,46 @@ while len(checkArduinoPorts())<=0:
 arduinoPort = checkArduinoPorts()
 cap.set(cv.CAP_PROP_EXPOSURE, composure)
 serial_ = serial.Serial(arduinoPort[0], 115200, timeout=1)
-print("arduino port detected: ", arduinoPort); main_test = True
 choice = str(input("select test types [dtv, atv, usb]: ").lower())
 saveDetectedImFeature = str(input("save documentation (1/0): "))
 serial_.write(choice.encode())
+imPreProcessing = True
 # saveDetectedImFeature = input("want to save the docs [True or False]: ")
+print(type(KEY["enter"]))
+print(KEY["escape"])
+print(KEY["q"])
+
+while imPreProcessing:
+    ret, frame = cap.read(0)
+    cv.imshow('cam_original', frame)
+    key = cv.waitKey(100) & 0xFF
+    print(key)
+    if key != 255 and key != KEY["enter"] and key != KEY["escape"]:
+        if key == KEY["w"] or key == KEY["w"]+32: composure+=0.1
+        elif key == KEY["s"] or key == KEY["s"]+32 : composure-=0.5
+        elif key == KEY["a"] or key == KEY["a"]+32 : brightness-=5
+        elif key == KEY["d"] or key == KEY["d"]+32 : brightness+=2
+        elif key == KEY["f"] or key == KEY["f"]+32 : contrast-=0.3
+        elif key == KEY["h"] or key == KEY["h"]+32 : contrast+=0.1
+        else : pass
+        cap.set(cv.CAP_PROP_EXPOSURE, composure)
+        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+    
+    if key == KEY["enter"]: 
+        main_test = True 
+        imPreProcessing = False
+        time.sleep(0.5)
+    if key == KEY["escape"]:
+        dataTx = "abort"
+        serial_.write(dataTx.encode())
+        break
+    
 while main_test:
     ret, frame = cap.read(0)
     cv.imshow('cam_original', frame)
     key = cv.waitKey(1) & 0xFF
-    if prepare_stage and key == 13:
+    
+    if prepare_stage and key == KEY["enter"]:
         emptyTestFile(choice)
         emptyResultFile(choice)
         createImgStore(choice)
@@ -163,29 +246,10 @@ while main_test:
             elif saveDetectedImFeature == False: pass
         elif dataRx == 'finish': exit()      
         else: print(dataRx); pass
-
-    if key == 113:
+    if key == KEY["escape"]:
         dataTx = "abort"
         serial_.write(dataTx.encode())
         break
-    elif key == (119 or 87): # w key
-        composure+=0.1
-        cap.set(cv.CAP_PROP_EXPOSURE, composure)
-    elif key == (115 or 83): # s key
-        composure-=0.5
-        cap.set(cv.CAP_PROP_EXPOSURE, composure)
-    elif key == (97 or 65): # a key
-        brightness-=5
-        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
-    elif key == (100 or 68): # d key
-        brightness+=2
-        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
-    elif key == (102 or 70): # f key
-        contrast-=0.3
-        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
-    elif key == (104 or 72): # h key
-        contrast+=0.1
-        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
     else: pass
 serial_.close()
 cap.release()
