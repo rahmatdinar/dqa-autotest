@@ -3,25 +3,27 @@ import time
 import datetime
 import os
 from paddleocr import PaddleOCR, draw_ocr
-from IPython.display import clear_output
-from PIL import Image, ImageDraw, ImageFont
 import cv2 as cv
 import csv
 import serial
-import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from module.imgpreprocessing import ImagePreProcessing
+from modules.mc_chooser import checkArduinoPorts
+from modules.button_ import KEY
+from modules.image_process import image_writer
+from modules.csv_generator import createTestFile, createResFile
 
 current_time = datetime.datetime.now()
 unique_img = "/"+ current_time.strftime("_%Y%m%d_%H%M")+ "/"
-unique_file = current_time.strftime("_%Y%m%d_%H%M")+".csv"
-img_folder_path = "./data-dir/data_test/img/"
-data_test_path = './data-dir/data_test/'
-data_txt_ref_path = './data-dir/data_reference/data_txt_ref_'
-data_res_path = './data-dir/data_result/'
-fonts = './font-dir/1942.ttf'
+unique_file = str(current_time.strftime("_%Y%m%d_%H%M")+".csv")
+img_folder_path = "D:/dqa-autotest/data-dir/data_test/img/"
+data_test_path = 'D:/dqa-autotest/data-dir/data_test/'
+data_txt_ref_path = 'D:/dqa-autotest/data-dir/data_reference/data_txt_ref_'
+data_res_path = 'D:/dqa-autotest/data-dir/data_result/'
+fonts = 'D:/dqa-autotest/font-dir/1942.ttf'
 
+firstLayer = True
+secondLayer = False
 i = 0
 i_max = 5
 imNum = 0
@@ -41,119 +43,13 @@ composure = -7
 contrast = 1.0
 brightness = 50
 global choice 
-KEY = {
-    "enter" : 13,
-    "backspace" : 8,
-    "escape" : 27,
-    "tab" : 9,
-    "shift" : 16,
-    "ctrl" : 17,
-    "alt" : 18,
-    "pause" : 19,
-    "capslock" : 20,
-    "page up" : 33,
-    "page down" : 34,
-    "end" : 35,
-    "home" : 36,
-    "left_arrow": 37,
-    "right_arrow": 39,
-    "up_arrow": 38,
-    "down_arrow": 40,
-    "zero": 48,
-    "one": 49,
-    "two": 50,
-    "three": 51,
-    "four": 52,
-    "five": 53,
-    "six": 54,
-    "seven": 56,
-    "eight": 57,
-    "nine": 58,
-    "a" : 65,
-    "b" : 66,
-    "c" : 67,
-    "d" : 68,
-    "e" : 69,
-    "f" : 70,
-    "g" : 71,
-    "h" : 72,
-    "i" : 73,
-    "j" : 74,
-    "k" : 75,
-    "l" : 76,
-    "m" : 77,
-    "n" : 78,
-    "o" : 79,
-    "p" : 80,
-    "q" : 81,
-    "r" : 82,
-    "s" : 83,
-    "t" : 84,
-    "u" : 85,
-    "v" : 86,
-    "w" : 87,
-    "x" : 88,
-    "y" : 89,
-    "z" : 90,
-}
-
-def checkArduinoPorts():
-    serial.tools.list_ports.comports()
-    arduino_ports = [
-        p.device for p in serial.tools.list_ports.comports()
-    ]
-    arduino_ports = [x for x in arduino_ports if x not in ['COM8', 'COM9']]
-    return arduino_ports
 
 def createImgStore(choice):
+    print("createImgStore()")
     global img_path 
     img_path = img_folder_path+choice+unique_img
     if os.path.exists(img_path): pass
     else: os.mkdir(img_path)
-
-def emptyTestFile(choice):
-    headerList = ['menu', 'params']
-    global data_test_path_
-    data_test_path_ = data_test_path+choice+"_test"+unique_file
-    if os.path.exists(data_test_path_):
-        os.remove(data_test_path_)
-        with open(data_test_path_, 'w', newline='') as creating_new_csv_file: 
-            writer = csv.DictWriter(creating_new_csv_file, fieldnames=headerList)
-            writer.writeheader()
-        creating_new_csv_file.close()
-    else:
-        print(f"File {data_test_path_} does not exist")
-        with open(data_test_path_, 'w', newline='') as creating_new_csv_file: 
-            writer = csv.DictWriter(creating_new_csv_file, fieldnames=headerList)
-            writer.writeheader()
-        creating_new_csv_file.close()
-
-# def createTestFile(choice):
-#     headerList = ['menu', 'params']
-#     global data_test_path_
-#     data_test_path_ = data_test_path+choice+"_test"+unique_file
-#     with open(data_test_path_, 'w', newline='') as creating_new_csv_file:
-#         print(unique_file, " created")
-#         writer = csv.DictWriter(creating_new_csv_file, fieldnames=headerList)
-#         writer.writeheader()
-#     creating_new_csv_file.close()
-
-def emptyResultFile(choice):
-    headerList = ['menu', 'confident', 'status']
-    global data_res_path_
-    data_res_path_ = data_res_path+choice+"_res"+unique_file
-    if os.path.exists(data_res_path_):
-        os.remove(data_res_path_)
-        with open(data_res_path_, 'w', newline='') as creating_new_csv_file: 
-            writer = csv.DictWriter(creating_new_csv_file, fieldnames=headerList)
-            writer.writeheader()   
-        creating_new_csv_file.close()
-    else:
-        print(f"File {data_res_path_} does not exist")
-        with open(data_res_path_, 'w', newline='') as creating_new_csv_file: 
-            writer = csv.DictWriter(creating_new_csv_file, fieldnames=headerList)
-            writer.writeheader()   
-        creating_new_csv_file.close()
 
 while len(checkArduinoPorts())<=0:
     time.sleep(0.2)
@@ -163,19 +59,27 @@ while len(checkArduinoPorts())<=0:
     checkArduinoPorts()
 
 arduinoPort = checkArduinoPorts()
+print("arduino detected on : ", arduinoPort)
 cap.set(cv.CAP_PROP_EXPOSURE, composure)
-serial_ = serial.Serial(arduinoPort[0], 115200, timeout=1)
+serial_ = serial.Serial(arduinoPort, 115200, timeout=1)
 choice = str(input("select test types [dtv, atv, usb]: ").lower())
-saveDetectedImFeature = "1"
 serial_.write(choice.encode())
+time.sleep(0.5)
+data_test_path_ = data_test_path+choice+"_test"+unique_file
+data_res_path_ = data_res_path+choice+"_res"+unique_file
+img_path = img_folder_path+choice+unique_img
+createTestFile(data_test_path_)
+createResFile(data_res_path_)
+createImgStore(choice)
+
+saveDetectedImFeature = "1"
 main_test = True
     
 while main_test:
     ret, frame = cap.read(0)
-    frame = ImagePreProcessing.grayscale(frame)
+    frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     cv.imshow('cam_original', frame)
     key = cv.waitKey(100) & 0xFF
-    print(key)
     if key != 255 and key != KEY["enter"] and key != KEY["escape"]:
         if key == KEY["w"] or key == KEY["w"]+32: composure+=0.1
         elif key == KEY["s"] or key == KEY["s"]+32 : composure-=0.5
@@ -187,9 +91,6 @@ while main_test:
         cap.set(cv.CAP_PROP_EXPOSURE, composure)
         cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
     if prepare_stage and key == KEY["enter"]:
-        emptyTestFile(choice)
-        emptyResultFile(choice)
-        createImgStore(choice)
         with open(data_txt_ref_path+choice+".csv", 'r') as ref_file:
             data_txt_ref = []
             csv_reader = csv.reader(ref_file)
@@ -199,6 +100,7 @@ while main_test:
         ref_file.close()
         prepare_stage = False
         dataTx = "camIsReady"
+        print(dataTx)
         serial_.write(dataTx.encode())
         time.sleep(0.2)
     if key == KEY["escape"]:
@@ -212,7 +114,8 @@ while main_test:
         if dataRx == 'takeshot':
             filename = str(imNum)
             filepath = img_path+filename+".png"
-            cv.imwrite(filepath, frame)
+            image_writer(frame, filepath)
+            #-------------------------------------#
             images_ = cv.imread(filepath)
             imNum+=1
             result = ocr.ocr(images_, cls=True)
@@ -221,14 +124,18 @@ while main_test:
                 writer = csv.writer(test_file)
                 writer.writerow([txts[0], list(txts[1:])])
             test_file.close()
-
+            #need send data to arduino (ocr_finished)
+            #--------------------------------------#
             data_test = txts
             print("comparing: ", data_test, " and ", data_txt_ref[startingRefRow])
             combined = [','.join(data_test), ','.join(data_txt_ref[startingRefRow])]
-            similarity = cosine_similarity(CountVectorizer().fit_transform(combined))[0,1]
-            if similarity>0.9 : status = "ok"
-            elif similarity>=0.7: status = "need manually check"
-            elif similarity<0.7: status = "not ok"
+            if(firstLayer):
+                similarity = cosine_similarity(CountVectorizer().fit_transform(combined))[0,1]
+                if similarity>0.95 : status = "ok"
+                elif similarity>=0.8: status = "need manually check"
+                elif similarity<0.8: status = "not ok"
+            elif(secondLayer):
+                pass
             startingRefRow+=1
 
             with open(data_res_path_, mode='a+', newline='') as test_file:
@@ -243,7 +150,9 @@ while main_test:
                 imagePost_ = draw_ocr(images_, boxes, txts, scores, font_path=fonts)
                 cv.imwrite(filepath, imagePost_)
             elif saveDetectedImFeature == False: pass
+            serial_.write("ocr_finished".encode())
         elif dataRx == 'finish': exit()      
+        elif dataRx == 'firstLayer_finished': firstLayer = False; secondLayer = True
         else: print(dataRx); pass
     
 serial_.close()

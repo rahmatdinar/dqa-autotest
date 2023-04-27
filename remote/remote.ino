@@ -1,12 +1,4 @@
-// #define USE_OLED_DISPLAY
-//  https://github.com/Arduino-IRremote/Arduino-IRremote
 #include <Arduino.h>
-
-// #define EXCLUDE_EXOTIC_PROTOCOLS // saves around 240 bytes program memory if IrSender.write is used
-// #define SEND_PWM_BY_TIMER
-// #define USE_NO_SEND_PWM
-// #define NO_LED_FEEDBACK_CODE // saves 566 bytes program memory
-
 #include "PinDefinitionsAndMore.h" //Define macros for input and output pin etc.
 #include <IRremote.hpp>
 #include <EasyButton.h>
@@ -131,86 +123,6 @@ typedef enum
     KEY_NULL = 0xFF,
 } EN_KEY;
 
-typedef enum
-{
-    SEQUENCE0_STAGE1 = 0,
-    SEQUENCE1_STAGE1,
-    SEQUENCE2_STAGE1,
-    SEQUENCE3_STAGE1,
-    SEQUENCEMAX_STAGE1,
-} STATE_SEQUENCE_STAGE1;
-
-typedef enum
-{
-    SEQUENCE0_STAGE2 = 0,
-    SEQUENCE1_STAGE2,
-    SEQUENCE2_STAGE2,
-    SEQUENCE3_STAGE2,
-    SEQUENCE4_STAGE2,
-    SEQUENCE5_STAGE2,
-    SEQUENCE6_STAGE2,
-    SEQUENCE7_STAGE2,
-    SEQUENCE8_STAGE2,
-    SEQUENCE9_STAGE2,
-    SEQUENCE10_STAGE2,
-    SEQUENCE11_STAGE2,
-    SEQUENCE12_STAGE2,
-    SEQUENCE13_STAGE2,
-    SEQUENCE14_STAGE2,
-    SEQUENCE15_STAGE2,
-    SEQUENCE16_STAGE2,
-    SEQUENCE17_STAGE2,
-    SEQUENCE18_STAGE2,
-    SEQUENCE19_STAGE2,
-    SEQUENCE20_STAGE2,
-    SEQUENCE21_STAGE2,
-    SEQUENCEMAX_STAGE2,
-} STATE_SEQUENCE_STAGE2;
-
-typedef enum
-{
-    SEQUENCE0_STAGE3 = 0,
-    SEQUENCE1_STAGE3,
-    SEQUENCE2_STAGE3,
-    SEQUENCE3_STAGE3,
-    SEQUENCE4_STAGE3,
-    SEQUENCE5_STAGE3,
-    SEQUENCE6_STAGE3,
-    SEQUENCE7_STAGE3,
-    SEQUENCE8_STAGE3,
-    SEQUENCE9_STAGE3,
-    SEQUENCE10_STAGE3,
-    SEQUENCE11_STAGE3,
-    SEQUENCE12_STAGE3,
-    SEQUENCE13_STAGE3,
-    SEQUENCE14_STAGE3,
-    SEQUENCE15_STAGE3,
-    SEQUENCEMAX_STAGE3,
-} STATE_SEQUENCE_STAGE3;
-
-typedef enum
-{
-    SEQUENCE0_STAGE4 = 0,
-    SEQUENCE1_STAGE4,
-    SEQUENCE2_STAGE4,
-    SEQUENCE3_STAGE4,
-    SEQUENCE4_STAGE4,
-    SEQUENCE5_STAGE4,
-    SEQUENCE6_STAGE4,
-    SEQUENCE7_STAGE4,
-    SEQUENCE8_STAGE4,
-    SEQUENCE9_STAGE4,
-    SEQUENCE10_STAGE4,
-    SEQUENCE11_STAGE4,
-    SEQUENCE12_STAGE4,
-    SEQUENCE13_STAGE4,
-    SEQUENCE14_STAGE4,
-    SEQUENCE15_STAGE4,
-    SEQUENCEMAX_STAGE4,
-} STATE_SEQUENCE_STAGE4;
-// +++++++++++++++++++++++++++
-// +  union structure
-// +++++++++++++++++++++++++++
 typedef struct
 {
     unsigned int bit_0 : 1;
@@ -298,13 +210,13 @@ typedef struct
     sBIT_BYTE_WORD_ACCESS Command;
 } stDataIR;
 
-// #define NULL 0
 
 IRsend irsend; // An IR LED must be connected to Arduino PWM pin 3.
 unsigned long irdata;
 unsigned long ocrRemotePressedMillis = 0;
 unsigned long lastCommandMillis = 0;
 unsigned long nextCommandMillis = 50;
+String sendDataCommand;
 int sequence = 0;
 int stage = 0;
 int lastStage = 0;
@@ -509,14 +421,15 @@ uint16_t mute(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-char usbMenu[][3] = {
-    {'0', '1'}, //pict 1
+char usbMenu[][8][5] = {
+    {{'0', '1'}, //pict 1
     {'3'}, //pict 2
     {'0', '2', '1'}, //sound
     {'0', '2', '1'}, //settings
     {'3'}, //settings 2
     {'0', '2', '1'}, //about
-    {'0', '2', '1'} //input source
+    {'0', '2', '1'}},{{'2', '1', '1'}} //input source
+
 };
 
 char dtvMenu[][3] = {
@@ -543,7 +456,7 @@ char atvMenu[][3] = {
     {'0', '2', '1'},
 };
 
-char** testTypeCommand_;
+char*** testTypeCommand_;
 unsigned long previousMillis = 0;
 const long interval = 4000;
 const String takeImageCommand = "takeshot";
@@ -551,11 +464,13 @@ const String beginCommand = "begin";
 const String finishedCommand = "finish";
 const String noData = "no data";
 const String check = "check";
+const String firstLayerFinished = "firstLayer_finished";
 String camIsReady;
 String data;
 String tempData;
 String testType;
 int a=0;
+int numKindaTest;
 int numRows;
 int numCols;
 
@@ -566,62 +481,73 @@ void loop(){
         data = Serial.readString();
         Serial.write(data.c_str());
         if(data == "usb"){ 
-            numRows = sizeof(usbMenu)/sizeof(usbMenu[0]);
-            numCols = sizeof(usbMenu[0])/sizeof(usbMenu[0][0]);
-            testTypeCommand_ = new char*[numRows];
-            for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
-            for(int i=0; i<numRows; i++){
-                for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = usbMenu[i][j];}
-            }
-        }
-        if(data == "dtv"){ 
-            numRows = sizeof(dtvMenu)/sizeof(dtvMenu[0]);
-            numCols = sizeof(dtvMenu[0])/sizeof(dtvMenu[0][0]);
-            testTypeCommand_ = new char*[numRows];
-            for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
-            for(int i=0; i<numRows; i++){
-                for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = dtvMenu[i][j];}
-            }
-        }
-        if(data == "atv"){ 
-            numRows = sizeof(atvMenu)/sizeof(atvMenu[0]);
-            numCols = sizeof(atvMenu[0])/sizeof(atvMenu[0][0]);
-            testTypeCommand_ = new char*[numRows];
-            for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
-            for(int i=0; i<numRows; i++){
-                for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = atvMenu[i][j];}
-            }
-        }
-        if(data == "camIsReady"){
-            for(int a=0; a<numRows; a++){
-                for(int b=0; b<numCols; b++){
-                    switch(testTypeCommand_[a][b]){
-                        case '0':
-                        menu();
-                        break;
-                        case '1':
-                        enter();
-                        break;
-                        case '2':
-                        bawah();
-                        break;
-                        case '3':
-                        atas();
-                        break;
-                        case '4':
-                        kiri();
-                        break;
-                        case '5':
-                        kanan();
-                        break;
-                        case '6':
-                        back();
-                        break;
+            numKindaTest = sizeof(usbMenu)/sizeof(usbMenu[0]);
+            numRows = sizeof(usbMenu[0])/sizeof(usbMenu[0][0]);
+            numCols = sizeof(usbMenu[0][0])/sizeof(usbMenu[0][0][0]);
+            testTypeCommand_ = new char**[numKindaTest];
+            // for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
+            // for(int i=0; i<numRows; i++){
+            //     for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = usbMenu[i][j];}
+            // }
+            // for(int i=0; i<numKindaTest; i++){
+            //     for(int j=0; j<numRows; j++){
+            //         for(int k=0; k<numCols; k++){
+            //             testTypeCommand_[i][j][k] = usbMenu[i][j][k];
+            //         }
+            //     }
+            // }
+            for(int i=0; i<numKindaTest; i++){ 
+                testTypeCommand_[i] = new char*[numRows+1];
+                for(int j=0; j<numKindaTest; j++){
+                    testTypeCommand_[i][j] = new char[numCols+1];
+                    for(int k=0; k<numRows; k++){
+                        testTypeCommand_[i][j][k] = usbMenu[i][j][k];
                     }
-                    delay(500);
                 }
-                Serial.write(takeImageCommand.c_str());
-                delay(4500);
+            }
+        }
+        // if(data == "dtv"){ 
+        //     numRows = sizeof(dtvMenu)/sizeof(dtvMenu[0]);
+        //     numCols = sizeof(dtvMenu[0])/sizeof(dtvMenu[0][0]);
+        //     testTypeCommand_ = new char*[numRows];
+        //     for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
+        //     for(int i=0; i<numRows; i++){
+        //         for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = dtvMenu[i][j];}
+        //     }
+        // }
+        // if(data == "atv"){ 
+        //     numRows = sizeof(atvMenu)/sizeof(atvMenu[0]);
+        //     numCols = sizeof(atvMenu[0])/sizeof(atvMenu[0][0]);
+        //     testTypeCommand_ = new char*[numRows];
+        //     for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
+        //     for(int i=0; i<numRows; i++){
+        //         for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = atvMenu[i][j];}
+        //     }
+        // }
+        if(data == "camIsReady"){
+            for(int c=0; c<numKindaTest; c++){
+                for(int a=0; a<numRows; a++){
+                    for(int b=0; b<numCols; b++){
+                        sendDataCommand = testTypeCommand_[c][a][b];
+                        Serial.write(sendDataCommand.c_str());
+                        switch(testTypeCommand_[c][a][b]){
+                            case '0': menu(); break;
+                            case '1': enter(); break;
+                            case '2': bawah(); break;
+                            case '3': atas(); break;
+                            case '4': kiri(); break;
+                            case '5': kanan(); break;
+                            case '6': back(); break;
+                        }
+                        delay(500);
+                    }
+                    Serial.write(takeImageCommand.c_str());
+                    while(Serial.readString()!="ocr_finished"){
+                        delay(100);
+                    }
+                }
+                Serial.write(firstLayerFinished.c_str());
+                delay(500);
             }
             Serial.write(finishedCommand.c_str());
         }
