@@ -11,6 +11,7 @@ import serial
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from module.imgpreprocessing import ImagePreProcessing
 
 current_time = datetime.datetime.now()
 unique_img = "/"+ current_time.strftime("_%Y%m%d_%H%M")+ "/"
@@ -19,7 +20,7 @@ img_folder_path = "./data-dir/data_test/img/"
 data_test_path = './data-dir/data_test/'
 data_txt_ref_path = './data-dir/data_reference/data_txt_ref_'
 data_res_path = './data-dir/data_result/'
-fonts = './font-dir/fonts/1942.ttf'
+fonts = './font-dir/1942.ttf'
 
 i = 0
 i_max = 5
@@ -39,7 +40,7 @@ startingRefRow = 0
 composure = -7
 contrast = 1.0
 brightness = 50
-
+global choice 
 KEY = {
     "enter" : 13,
     "backspace" : 8,
@@ -127,6 +128,16 @@ def emptyTestFile(choice):
             writer.writeheader()
         creating_new_csv_file.close()
 
+# def createTestFile(choice):
+#     headerList = ['menu', 'params']
+#     global data_test_path_
+#     data_test_path_ = data_test_path+choice+"_test"+unique_file
+#     with open(data_test_path_, 'w', newline='') as creating_new_csv_file:
+#         print(unique_file, " created")
+#         writer = csv.DictWriter(creating_new_csv_file, fieldnames=headerList)
+#         writer.writeheader()
+#     creating_new_csv_file.close()
+
 def emptyResultFile(choice):
     headerList = ['menu', 'confident', 'status']
     global data_res_path_
@@ -155,16 +166,13 @@ arduinoPort = checkArduinoPorts()
 cap.set(cv.CAP_PROP_EXPOSURE, composure)
 serial_ = serial.Serial(arduinoPort[0], 115200, timeout=1)
 choice = str(input("select test types [dtv, atv, usb]: ").lower())
-saveDetectedImFeature = str(input("save documentation (1/0): "))
+saveDetectedImFeature = "1"
 serial_.write(choice.encode())
-imPreProcessing = True
-# saveDetectedImFeature = input("want to save the docs [True or False]: ")
-print(type(KEY["enter"]))
-print(KEY["escape"])
-print(KEY["q"])
-
-while imPreProcessing:
+main_test = True
+    
+while main_test:
     ret, frame = cap.read(0)
+    frame = ImagePreProcessing.grayscale(frame)
     cv.imshow('cam_original', frame)
     key = cv.waitKey(100) & 0xFF
     print(key)
@@ -178,21 +186,6 @@ while imPreProcessing:
         else : pass
         cap.set(cv.CAP_PROP_EXPOSURE, composure)
         cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
-    
-    if key == KEY["enter"]: 
-        main_test = True 
-        imPreProcessing = False
-        time.sleep(0.5)
-    if key == KEY["escape"]:
-        dataTx = "abort"
-        serial_.write(dataTx.encode())
-        break
-    
-while main_test:
-    ret, frame = cap.read(0)
-    cv.imshow('cam_original', frame)
-    key = cv.waitKey(1) & 0xFF
-    
     if prepare_stage and key == KEY["enter"]:
         emptyTestFile(choice)
         emptyResultFile(choice)
@@ -207,9 +200,15 @@ while main_test:
         prepare_stage = False
         dataTx = "camIsReady"
         serial_.write(dataTx.encode())
-
+        time.sleep(0.2)
+    if key == KEY["escape"]:
+        dataTx = "abort"
+        serial_.write(dataTx.encode())
+        break
+    else: pass
     while serial_.in_waiting>0:
         dataRx = serial_.readline().decode().rstrip()
+        print(dataRx)
         if dataRx == 'takeshot':
             filename = str(imNum)
             filepath = img_path+filename+".png"
@@ -246,11 +245,7 @@ while main_test:
             elif saveDetectedImFeature == False: pass
         elif dataRx == 'finish': exit()      
         else: print(dataRx); pass
-    if key == KEY["escape"]:
-        dataTx = "abort"
-        serial_.write(dataTx.encode())
-        break
-    else: pass
+    
 serial_.close()
 cap.release()
 cv.destroyAllWindows()
