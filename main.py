@@ -150,9 +150,9 @@ while main_test:
                 imagePost_ = draw_ocr(images_, boxes, txts, scores, font_path=fonts)
                 cv.imwrite(filepath, imagePost_)
             elif saveDetectedImFeature == False: pass
-            serial_.write("ocr_finished".encode())
+            serial_.write("ocrFinished".encode())
         elif dataRx == 'finish': exit()      
-        elif dataRx == 'firstLayer_finished': firstLayer = False; secondLayer = True
+        elif dataRx == 'firstLayerFinished': firstLayer = False; secondLayer = True
         else: print(dataRx); pass
     
 serial_.close()

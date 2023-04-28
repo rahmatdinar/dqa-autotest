@@ -216,7 +216,7 @@ unsigned long irdata;
 unsigned long ocrRemotePressedMillis = 0;
 unsigned long lastCommandMillis = 0;
 unsigned long nextCommandMillis = 50;
-String sendDataCommand;
+char sendDataCommand;
 int sequence = 0;
 int stage = 0;
 int lastStage = 0;
@@ -421,14 +421,9 @@ uint16_t mute(){
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-char usbMenu[][8][5] = {
-    {{'0', '1'}, //pict 1
-    {'3'}, //pict 2
-    {'0', '2', '1'}, //sound
-    {'0', '2', '1'}, //settings
-    {'3'}, //settings 2
-    {'0', '2', '1'}, //about
-    {'0', '2', '1'}},{{'2', '1', '1'}} //input source
+char usbMenu[][7][3] = {
+    {{'0', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'}},
+    {{'2', '1', '1'}} //input source
 
 };
 
@@ -464,13 +459,13 @@ const String beginCommand = "begin";
 const String finishedCommand = "finish";
 const String noData = "no data";
 const String check = "check";
-const String firstLayerFinished = "firstLayer_finished";
+const String firstLayerFinished = "firstLayerFinished";
 String camIsReady;
 String data;
 String tempData;
 String testType;
 int a=0;
-int numKindaTest;
+int numLayer;
 int numRows;
 int numCols;
 
@@ -481,27 +476,21 @@ void loop(){
         data = Serial.readString();
         Serial.write(data.c_str());
         if(data == "usb"){ 
-            numKindaTest = sizeof(usbMenu)/sizeof(usbMenu[0]);
+            numLayer = sizeof(usbMenu)/sizeof(usbMenu[0]);
             numRows = sizeof(usbMenu[0])/sizeof(usbMenu[0][0]);
             numCols = sizeof(usbMenu[0][0])/sizeof(usbMenu[0][0][0]);
-            testTypeCommand_ = new char**[numKindaTest];
-            // for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
-            // for(int i=0; i<numRows; i++){
-            //     for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = usbMenu[i][j];}
-            // }
-            // for(int i=0; i<numKindaTest; i++){
-            //     for(int j=0; j<numRows; j++){
-            //         for(int k=0; k<numCols; k++){
-            //             testTypeCommand_[i][j][k] = usbMenu[i][j][k];
-            //         }
-            //     }
-            // }
-            for(int i=0; i<numKindaTest; i++){ 
-                testTypeCommand_[i] = new char*[numRows+1];
-                for(int j=0; j<numKindaTest; j++){
-                    testTypeCommand_[i][j] = new char[numCols+1];
+            Serial.println(numLayer);
+            Serial.println(numRows);
+            Serial.println(numCols);
+            testTypeCommand_ = new char**[numLayer];
+            for(int i=0; i<numLayer; i++){ 
+                testTypeCommand_[i] = new char*[numRows];
+                for(int j=0; j<numLayer; j++){
+                    testTypeCommand_[i][j] = new char[numCols];
                     for(int k=0; k<numRows; k++){
                         testTypeCommand_[i][j][k] = usbMenu[i][j][k];
+                        // Serial.println(testTypeCommand_[i][j][k], HEX);
+                        delay(100);
                     }
                 }
             }
@@ -525,12 +514,13 @@ void loop(){
         //     }
         // }
         if(data == "camIsReady"){
-            for(int c=0; c<numKindaTest; c++){
-                for(int a=0; a<numRows; a++){
-                    for(int b=0; b<numCols; b++){
-                        sendDataCommand = testTypeCommand_[c][a][b];
-                        Serial.write(sendDataCommand.c_str());
-                        switch(testTypeCommand_[c][a][b]){
+            for(int a=0; a<numLayer; a++){
+                for(int b=0; b<numRows; b++){
+                    for(int c=0; c<numCols; c++){
+                        sendDataCommand = testTypeCommand_[a][b][c];
+                        Serial.println(sendDataCommand);
+                        Serial.println(sendDataCommand, HEX);
+                        switch(testTypeCommand_[a][b][c]){
                             case '0': menu(); break;
                             case '1': enter(); break;
                             case '2': bawah(); break;
@@ -539,12 +529,13 @@ void loop(){
                             case '5': kanan(); break;
                             case '6': back(); break;
                         }
-                        delay(500);
+                        delay(800);
                     }
                     Serial.write(takeImageCommand.c_str());
-                    while(Serial.readString()!="ocr_finished"){
-                        delay(100);
-                    }
+                    // while(Serial.readString()!="ocrFinished"){
+                    //     delay(100);
+                    // }
+                    delay(3000);
                 }
                 Serial.write(firstLayerFinished.c_str());
                 delay(500);
