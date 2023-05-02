@@ -302,23 +302,19 @@ void(*resetFunc) (void) = 0;
 
 void setup(){
     Serial.begin(115200);
-    // Serial.println("Sequence IR");
     keyTemp = KEY_NULL;
+
 #if defined(IR_SEND_PIN)
     irsend.begin(); // Start with IR_SEND_PIN as send pin and enable feedback LED at default feedback LED pin
 #else
     irsend.begin(3, ENABLE_LED_FEEDBACK); // Specify send pin and enable feedback LED at default feedback LED pin
 #endif
 #if !defined(SEND_PWM_BY_TIMER)
-    /*
-       Print internal signal generation info
-    */
     irsend.enableIROut(38); // Call it with 38 kHz to initialize the values printed below
 #endif
 }
 
 uint16_t zero(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x00;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -326,7 +322,6 @@ uint16_t zero(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t one(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x01;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -334,7 +329,6 @@ uint16_t one(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t four(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x04;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -342,7 +336,6 @@ uint16_t four(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t menu(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            
     remoteData.Command.byte_access.byte_0 = 0x0B;                                   
@@ -350,7 +343,6 @@ uint16_t menu(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t enter(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x14;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -358,7 +350,6 @@ uint16_t enter(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t atas(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x0C;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -366,7 +357,6 @@ uint16_t atas(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t bawah(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x0D;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -374,7 +364,6 @@ uint16_t bawah(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t kanan(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x0E;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -382,7 +371,6 @@ uint16_t kanan(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t kiri(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x0F;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -390,7 +378,6 @@ uint16_t kiri(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t back(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x4B;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -398,7 +385,6 @@ uint16_t back(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t power(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x17;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -406,7 +392,6 @@ uint16_t power(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t source(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x5C;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
@@ -414,28 +399,20 @@ uint16_t source(){
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
 uint16_t mute(){
-    qComms++;
     remoteData.Custom.byte_access.byte_0 = CUSTOMCODE_H;                            // 0x80;//0x10;//CUSTOMCODE_H;
     remoteData.Custom.byte_access.byte_1 = CUSTOMCODE_L;                            // 0x7f;//0xef;//CUSTOMCODE_L;
     remoteData.Command.byte_access.byte_0 = 0x15;                                   // 0x0d;//IrCommandTypeNECSmartTV[0];
     remoteData.Command.byte_access.byte_1 = ~remoteData.Command.byte_access.byte_0; // 0xf4;//0xF2;//IrCommandTypeNECSmartTV[0];
     irsend.sendNEC(remoteData.Custom.word_access, remoteData.Command.word_access, 0);
 }
-char usbMenu[][7][3] = {
-    {{'0', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'}, {'0', '2', '1'}, {'3'}, {'0', '2', '1'}},
-    {{'2', '1', '1'}}
+char usbMenu[][10][5] = {
+    {{'0', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'},{'3'}, {'0', '2', '1'}, {'0', '2', '1'}},
+    {{'0', '2', '1', '2', '1'}, {'4'}, {'5'}, {'2'}, {'4'}, {'5'}, {'2'}, {'4'}, {'5'}, {'2'}, {'4'}, {'5'}, {'2'}}
 };
 
-char dtvMenu[][3] = {
-    {'0', '1'},
-    {'3'},
-    {'0', '2', '1'},
-    {'0', '2', '1'},
-    {'3'},
-    {'0', '2', '1'},
-    {'3'},
-    {'0', '2', '1'},
-    {'0', '2', '1'},
+char dtvMenu[][10][3] = {
+    {{'0', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'}, {'3'}, {'0', '2', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'}},
+    {{}}
 };
 
 char atvMenu[][3] = {
@@ -464,11 +441,10 @@ String camIsReady;
 String data = "usb";
 String tempData;
 String testType;
-bool trialTest = true;
-bool takeShot;
+bool trialTest = true, takeShot;
+bool firstLayer = true, secondLayer = false;
 int a=0;
-int numLayer, numRows, numCols;
-int loopLayer, loopRows, loopCols;
+int numLayer, numRows, numCols,  loopLayer, loopRows, loopCols;;
 
 void loop(){
     unsigned long currentMillis = millis();
@@ -563,35 +539,69 @@ void loop(){
                     takeShot = false;
                     for(loopCols=0; loopCols<numCols; loopCols++){
                         if(testTypeCommand_[loopLayer][loopRows][loopCols] != NULL){
-                            takeShot = true;
                             sendDataCommand = testTypeCommand_[loopLayer][loopRows][loopCols];
                             Serial.write(sendDataCommand);
-                            switch(testTypeCommand_[loopLayer][loopRows][loopCols]){
-                                case '0': menu(); break;
-                                case '1': enter(); break;
-                                case '2': bawah(); break;
-                                case '3': atas(); break;
-                                case '4': kiri(); break;
-                                case '5': kanan(); break;
-                                case '6': back(); break;
+                            if(firstLayer == true){
+                                takeShot = true;
+                                switch(sendDataCommand){
+                                    case '0': menu(); break;
+                                    case '1': enter(); break;
+                                    case '2': bawah(); break;
+                                    case '3': atas(); break;
+                                    case '4': kiri(); break;
+                                    case '5': kanan(); break;
+                                    case '6': back(); break;
+                                }
+                                delay(fastDelay);
                             }
-                            delay(500);   
+                            if(secondLayer == true){
+                                if(sendDataCommand == '4' || sendDataCommand == '5'){
+                                    Serial.write("increasing/decreasing value repeatedly");
+                                    for(int singleButtonRepeated=0; singleButtonRepeated<100; singleButtonRepeated++){
+                                        Serial.write(sendDataCommand);
+                                        switch (sendDataCommand){
+                                            case '4': kiri(); break;
+                                            case '5': kanan(); break;
+                                        }
+                                        delay(85);
+                                    }
+                                    takeShot = true;
+                                }
+                                else{
+                                    switch(sendDataCommand){
+                                        case '0': menu(); break;
+                                        case '1': enter(); break;
+                                        case '2': bawah(); break;
+                                        case '3': atas(); break;
+                                        case '4': kiri(); break;
+                                        case '5': kanan(); break;
+                                        case '6': back(); break;
+                                    }
+                                    delay(fastDelay);
+                                    takeShot = false;
+                                }
+                            }        
                         }
                     }
+
                     if(takeShot == true){
                         Serial.write(takeImageCommand.c_str());
-                        delay(3000);
+                        while(Serial.readString()!="ocrFinished"){
+                            delay(100);
+                        }
                     }
-                    // while(Serial.readString()!="ocrFinished"){
-                    //     delay(100);
-                    // }
+                    
                 }
                 if(loopLayer==0){
                     Serial.write(firstLayerFinished.c_str());
+                    firstLayer = false;
+                    secondLayer = true;
                     delay(500);
                 }
                 else if(loopLayer==1){
                     Serial.write(secondLayerFinished.c_str());
+                    firstLayer = false;
+                    secondLayer = false;
                     delay(500);
                 }
             }
