@@ -423,8 +423,7 @@ uint16_t mute(){
 }
 char usbMenu[][7][3] = {
     {{'0', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'}},
-    {{'2', '1', '1'}} //input source
-
+    {{'2', '1', '1'}}
 };
 
 char dtvMenu[][3] = {
@@ -461,9 +460,10 @@ const String noData = "no data";
 const String check = "check";
 const String firstLayerFinished = "firstLayerFinished";
 String camIsReady;
-String data;
+String data = "usb";
 String tempData;
 String testType;
+bool trialTest = true;
 int a=0;
 int numLayer;
 int numRows;
@@ -479,47 +479,89 @@ void loop(){
             numLayer = sizeof(usbMenu)/sizeof(usbMenu[0]);
             numRows = sizeof(usbMenu[0])/sizeof(usbMenu[0][0]);
             numCols = sizeof(usbMenu[0][0])/sizeof(usbMenu[0][0][0]);
-            Serial.println(numLayer);
-            Serial.println(numRows);
-            Serial.println(numCols);
             testTypeCommand_ = new char**[numLayer];
             for(int i=0; i<numLayer; i++){ 
                 testTypeCommand_[i] = new char*[numRows];
-                for(int j=0; j<numLayer; j++){
+                for(int j=0; j<numRows; j++){
                     testTypeCommand_[i][j] = new char[numCols];
-                    for(int k=0; k<numRows; k++){
+                }
+            }
+            for(int i=0; i<numLayer; i++){
+                for(int j=0; j<numRows; j++){
+                    for(int k=0; k<numCols; k++){
+                        // Serial.print(i);
+                        // Serial.print(j);
+                        // Serial.print(k);
+                        // Serial.print(": ");
+                        // Serial.print(usbMenu[i][j][k]);
+                        // Serial.print(" >< ");
                         testTypeCommand_[i][j][k] = usbMenu[i][j][k];
-                        // Serial.println(testTypeCommand_[i][j][k], HEX);
+                        Serial.println(testTypeCommand_[i][j][k]);
                         delay(100);
                     }
                 }
             }
         }
-        // if(data == "dtv"){ 
-        //     numRows = sizeof(dtvMenu)/sizeof(dtvMenu[0]);
-        //     numCols = sizeof(dtvMenu[0])/sizeof(dtvMenu[0][0]);
-        //     testTypeCommand_ = new char*[numRows];
-        //     for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
-        //     for(int i=0; i<numRows; i++){
-        //         for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = dtvMenu[i][j];}
-        //     }
-        // }
-        // if(data == "atv"){ 
-        //     numRows = sizeof(atvMenu)/sizeof(atvMenu[0]);
-        //     numCols = sizeof(atvMenu[0])/sizeof(atvMenu[0][0]);
-        //     testTypeCommand_ = new char*[numRows];
-        //     for(int i=0; i<numRows; i++){ testTypeCommand_[i] = new char[numCols+1];}
-        //     for(int i=0; i<numRows; i++){
-        //         for(int j=0; j<numCols; j++){ testTypeCommand_[i][j] = atvMenu[i][j];}
-        //     }
-        // }
+        if(data == "dtv"){ 
+            numLayer = sizeof(usbMenu)/sizeof(usbMenu[0]);
+            numRows = sizeof(usbMenu[0])/sizeof(usbMenu[0][0]);
+            numCols = sizeof(usbMenu[0][0])/sizeof(usbMenu[0][0][0]);
+            testTypeCommand_ = new char**[numLayer];
+            for(int i=0; i<numLayer; i++){ 
+                testTypeCommand_[i] = new char*[numRows];
+                for(int j=0; j<numRows; j++){
+                    testTypeCommand_[i][j] = new char[numCols];
+                }
+            }
+            for(int i=0; i<numLayer; i++){
+                for(int j=0; j<numRows; j++){
+                    for(int k=0; k<numCols; k++){
+                        // Serial.print(i);
+                        // Serial.print(j);
+                        // Serial.print(k);
+                        // Serial.print(": ");
+                        // Serial.print(usbMenu[i][j][k]);
+                        // Serial.print(" >< ");
+                        testTypeCommand_[i][j][k] = usbMenu[i][j][k];
+                        Serial.println(testTypeCommand_[i][j][k]);
+                        delay(100);
+                    }
+                }
+            }
+        }
+        if(data == "atv"){ 
+            numLayer = sizeof(usbMenu)/sizeof(usbMenu[0]);
+            numRows = sizeof(usbMenu[0])/sizeof(usbMenu[0][0]);
+            numCols = sizeof(usbMenu[0][0])/sizeof(usbMenu[0][0][0]);
+            testTypeCommand_ = new char**[numLayer];
+            for(int i=0; i<numLayer; i++){ 
+                testTypeCommand_[i] = new char*[numRows];
+                for(int j=0; j<numRows; j++){
+                    testTypeCommand_[i][j] = new char[numCols];
+                }
+            }
+            for(int i=0; i<numLayer; i++){
+                for(int j=0; j<numRows; j++){
+                    for(int k=0; k<numCols; k++){
+                        // Serial.print(i);
+                        // Serial.print(j);
+                        // Serial.print(k);
+                        // Serial.print(": ");
+                        // Serial.print(usbMenu[i][j][k]);
+                        // Serial.print(" >< ");
+                        testTypeCommand_[i][j][k] = usbMenu[i][j][k];
+                        Serial.println(testTypeCommand_[i][j][k]);
+                        delay(100);
+                    }
+                }
+            }
+        }
         if(data == "camIsReady"){
             for(int a=0; a<numLayer; a++){
                 for(int b=0; b<numRows; b++){
                     for(int c=0; c<numCols; c++){
                         sendDataCommand = testTypeCommand_[a][b][c];
-                        Serial.println(sendDataCommand);
-                        Serial.println(sendDataCommand, HEX);
+                        Serial.write(sendDataCommand);
                         switch(testTypeCommand_[a][b][c]){
                             case '0': menu(); break;
                             case '1': enter(); break;
