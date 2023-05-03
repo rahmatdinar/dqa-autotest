@@ -235,7 +235,7 @@ bool bStart = false;
 bool bStop = false;
 bool bSkip = false;
 
-char usbMenu[][13][5] = {
+char usbMenu[][13][6] = {
     {{'0', '1'}, {'3'}, {'0', '2', '1'}, {'0', '2', '1'},{'3'}, {'0', '2', '1'}, {'0', '2', '1'}},
     {{'0', '2', '1', '2', '1'}, {'4'}, {'5'}, {'2'}, {'4'}, {'5'}, {'2'}, {'4'}, {'5'}, {'2'}, {'4'}, {'5'}, {'2'}}
 };
@@ -485,7 +485,7 @@ void loop(){
     if(Serial.available()>0){
         currentMillis = millis();
         data = Serial.readString();
-        Serial.write(data.c_str());
+        // Serial.write(data.c_str());
         if(data == "usb"){ testTypeCommand_ = testCommand(data); }
         if(data == "dtv"){ testTypeCommand_ = testCommand(data); }
         if(data == "atv"){ testTypeCommand_ = testCommand(data); }
@@ -496,7 +496,7 @@ void loop(){
                     for(loopCols=0; loopCols<numCols; loopCols++){
                         if(testTypeCommand_[loopLayer][loopRows][loopCols] != NULL){
                             sendDataCommand = testTypeCommand_[loopLayer][loopRows][loopCols];
-                            Serial.write(sendDataCommand);
+                            // Serial.write(sendDataCommand);
                             if(firstLayer == true){
                                 takeShot = true;
                                 switch(sendDataCommand){
@@ -512,16 +512,32 @@ void loop(){
                             }
                             if(secondLayer == true){
                                 if(sendDataCommand == '4' || sendDataCommand == '5'){
-                                    Serial.write("increasing/decreasing value repeatedly");
-                                    for(int singleButtonRepeated=0; singleButtonRepeated<100; singleButtonRepeated++){
-                                        Serial.write(sendDataCommand);
-                                        switch (sendDataCommand){
-                                            case '4': kiri(); break;
-                                            case '5': kanan(); break;
+                                    Serial.write(takeImageCommand.c_str());
+                                    String repetitionData = Serial.readString();
+                                    int repetition = 100-repetitionData.toInt();
+                                    if(sendDataCommand == '4'){
+                                        for(int singleButtonRepeated=0; singleButtonRepeated<repetition; singleButtonRepeated++){
+                                            // Serial.write(sendDataCommand);
+                                            switch (sendDataCommand){
+                                                case '4': kiri(); break;
+                                                case '5': kanan(); break;
+                                            }
+                                            delay(85);
                                         }
-                                        delay(85);
+                                        takeShot = true;
                                     }
-                                    takeShot = true;
+                                    else{
+                                        for(int singleButtonRepeated=0; singleButtonRepeated<100; singleButtonRepeated++){
+                                            // Serial.write(sendDataCommand);
+                                            switch (sendDataCommand){
+                                                case '4': kiri(); break;
+                                                case '5': kanan(); break;
+                                            }
+                                            delay(85);
+                                        }
+                                        takeShot = true;
+                                    }
+                                    
                                 }
                                 else{
                                     switch(sendDataCommand){
@@ -542,9 +558,7 @@ void loop(){
 
                     if(takeShot == true){
                         Serial.write(takeImageCommand.c_str());
-                        while(Serial.readString()!="ocrFinished"){
-                            delay(100);
-                        }
+                        while(Serial.readString()!="ocrFinished"){delay(100);}
                     }
                     
                 }
