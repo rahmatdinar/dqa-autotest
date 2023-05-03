@@ -30,9 +30,6 @@ imNum = 0
 testType_ = 0
 prepare_stage = True
 takeShot_stage = False
-previousMillis = 2000
-previousMillisWaitingNoResponse = 2500
-start_time = time.monotonic() * 1000
 cap = cv.VideoCapture(0)
 main_test = False
 ocr = PaddleOCR(use_angle_cls=True, lang='en')
@@ -42,6 +39,8 @@ startingRefRow = 0
 composure = -7
 contrast = 1.0
 brightness = 50
+secondLayerCheck=0
+                
 global choice 
 
 def createImgStore(choice):
@@ -74,6 +73,7 @@ createImgStore(choice)
 
 saveDetectedImFeature = "1"
 main_test = True
+statusWrite = True
     
 while main_test:
     ret, frame = cap.read(0)
@@ -114,34 +114,48 @@ while main_test:
         if dataRx == 'takeshot':
             filename = str(imNum)
             filepath = img_path+filename+".png"
-            image_writer(frame, filepath)
+            cv.imwrite(filepath, frame)
+            # image_writer(frame, filepath)
             #-------------------------------------#
             images_ = cv.imread(filepath)
             imNum+=1
             result = ocr.ocr(images_, cls=True)
             txts = [line[1][0].lower() for line in result[0]]
-            with open(data_test_path_, mode='a+', newline='') as test_file:
-                writer = csv.writer(test_file)
-                writer.writerow([txts[0], list(txts[1:])])
-            test_file.close()
-            #need send data to arduino (ocr_finished)
-            #--------------------------------------#
-            data_test = txts
-            print("comparing: ", data_test, " and ", data_txt_ref[startingRefRow])
-            combined = [','.join(data_test), ','.join(data_txt_ref[startingRefRow])]
             if(firstLayer):
+                statusWrite = True
+                with open(data_test_path_, mode='a+', newline='') as test_file:
+                    writer = csv.writer(test_file)
+                    writer.writerow([txts[0], list(txts[1:])])
+                test_file.close()
+                #need send data to arduino (ocr_finished)
+                #--------------------------------------#
+                data_test = txts
+                print("comparing: ", data_test, " and ", data_txt_ref[startingRefRow])
+                combined = [','.join(data_test), ','.join(data_txt_ref[startingRefRow])]
+                startingRefRow+=1
                 similarity = cosine_similarity(CountVectorizer().fit_transform(combined))[0,1]
                 if similarity>0.95 : status = "ok"
                 elif similarity>=0.8: status = "need manually check"
                 elif similarity<0.8: status = "not ok"
             elif(secondLayer):
-                pass
-            startingRefRow+=1
+                print(txts)
+                if secondLayerCheck>0:
+                    similarity = cosine_similarity(CountVectorizer().fit_transform(combined))[0,1]
+                    if similarity>=0.99 : status = "ok"
+                    elif similarity<0.99: status = "not ok"
+                    statusWrite = True
+                    secondLayerCheck+=1
+                    if secondLayerCheck>2: secondLayerCheck=0
+                else:
+                    serial_.write(txts[1].encode())
+                    statusWrite = False
+                    secondLayerCheck+=1
 
-            with open(data_res_path_, mode='a+', newline='') as test_file:
-                writer = csv.writer(test_file)
-                writer.writerow([txts[0], similarity, status])
-            test_file.close()
+            if statusWrite:
+                with open(data_res_path_, mode='a+', newline='') as test_file:
+                    writer = csv.writer(test_file)
+                    writer.writerow([txts[0], similarity, status])
+                test_file.close()
 
             #save detected images
             if saveDetectedImFeature == "1":
@@ -149,7 +163,6 @@ while main_test:
                 scores = [line[1][1] for line in result[0]]
                 imagePost_ = draw_ocr(images_, boxes, txts, scores, font_path=fonts)
                 cv.imwrite(filepath, imagePost_)
-            elif saveDetectedImFeature == False: pass
             serial_.write("ocrFinished".encode())
         elif dataRx == 'finish': exit()      
         elif dataRx == 'firstLayerFinished': firstLayer = False; secondLayer = True
