@@ -24,8 +24,6 @@ fonts = 'D:/dqa-autotest/font-dir/1942.ttf'
 
 firstLayer = True
 secondLayer = False
-i = 0
-i_max = 5
 imNum = 0
 testType_ = 0
 prepare_stage = True
@@ -35,7 +33,7 @@ main_test = False
 ocr = PaddleOCR(use_angle_cls=True, lang='en')
 currentRow =2 #2 for starting row both in data_test and refs
 skipHeader = True
-startingRefRow = 0
+refRow = 0
 composure = -7
 contrast = 1.0
 brightness = 50
@@ -107,15 +105,14 @@ while main_test:
         dataTx = "abort"
         serial_.write(dataTx.encode())
         break
-    else: pass
     while serial_.in_waiting>0:
         dataRx = serial_.readline().decode().rstrip()
         print(dataRx)
         if dataRx == 'takeshot':
             filename = str(imNum)
             filepath = img_path+filename+".png"
-            cv.imwrite(filepath, frame)
-            # image_writer(frame, filepath)
+            # cv.imwrite(filepath, frame)
+            image_writer(frame, filepath)
             #-------------------------------------#
             images_ = cv.imread(filepath)
             imNum+=1
@@ -130,9 +127,9 @@ while main_test:
                 #need send data to arduino (ocr_finished)
                 #--------------------------------------#
                 data_test = txts
-                print("comparing: ", data_test, " and ", data_txt_ref[startingRefRow])
-                combined = [','.join(data_test), ','.join(data_txt_ref[startingRefRow])]
-                startingRefRow+=1
+                print("comparing: ", data_test, " and ", data_txt_ref[refRow])
+                combined = [','.join(data_test), ','.join(data_txt_ref[refRow])]
+                refRow+=1
                 similarity = cosine_similarity(CountVectorizer().fit_transform(combined))[0,1]
                 if similarity>0.95 : status = "ok"
                 elif similarity>=0.8: status = "need manually check"
@@ -140,9 +137,13 @@ while main_test:
             elif(secondLayer):
                 print(txts)
                 if secondLayerCheck>0:
+                    data_test = txts
+                    print("comparing: ", data_test, " and ", data_txt_ref[refRow])
+                    combined = [','.join(data_test), ','.join(data_txt_ref[refRow])]
                     similarity = cosine_similarity(CountVectorizer().fit_transform(combined))[0,1]
                     if similarity>=0.99 : status = "ok"
                     elif similarity<0.99: status = "not ok"
+                    refRow+=1
                     statusWrite = True
                     secondLayerCheck+=1
                     if secondLayerCheck>2: secondLayerCheck=0
