@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from modules.mc_chooser import checkArduinoPorts
 from modules.button_ import KEY
-from modules.image_process import image_writer
+from modules.image_process import image_writer, image_adjustment
 from modules.csv_generator import createTestFile, createResFile
 
 current_time = datetime.datetime.now()
@@ -25,6 +25,7 @@ fonts = 'D:/dqa-autotest/font-dir/1942.ttf'
 firstLayer = True
 secondLayer = False
 imNum = 0
+i = 0
 testType_ = 0
 prepare_stage = True
 takeShot_stage = False
@@ -48,6 +49,14 @@ def createImgStore(choice):
     if os.path.exists(img_path): pass
     else: os.mkdir(img_path)
 
+def checkArduinoPorts():
+    serial.tools.list_ports.comports()
+    arduino_ports = [
+        p.device for p in serial.tools.list_ports.comports()
+    ]
+    arduino_ports = [x for x in arduino_ports if x not in ['COM8', 'COM9']]
+    return arduino_ports
+
 while len(checkArduinoPorts())<=0:
     time.sleep(0.2)
     if i<1:
@@ -58,7 +67,7 @@ while len(checkArduinoPorts())<=0:
 arduinoPort = checkArduinoPorts()
 print("arduino detected on : ", arduinoPort)
 cap.set(cv.CAP_PROP_EXPOSURE, composure)
-serial_ = serial.Serial(arduinoPort, 115200, timeout=1)
+serial_ = serial.Serial(arduinoPort[0], 115200, timeout=1)
 choice = str(input("select test types [dtv, atv, usb]: ").lower())
 serial_.write(choice.encode())
 time.sleep(0.5)
@@ -78,16 +87,9 @@ while main_test:
     frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     cv.imshow('cam_original', frame)
     key = cv.waitKey(100) & 0xFF
+    
     if key != 255 and key != KEY["enter"] and key != KEY["escape"]:
-        if key == KEY["w"] or key == KEY["w"]+32: composure+=0.1
-        elif key == KEY["s"] or key == KEY["s"]+32 : composure-=0.5
-        elif key == KEY["a"] or key == KEY["a"]+32 : brightness-=5
-        elif key == KEY["d"] or key == KEY["d"]+32 : brightness+=2
-        elif key == KEY["f"] or key == KEY["f"]+32 : contrast-=0.3
-        elif key == KEY["h"] or key == KEY["h"]+32 : contrast+=0.1
-        else : pass
-        cap.set(cv.CAP_PROP_EXPOSURE, composure)
-        cv.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+        image_adjustment(cap, frame, key)
     if prepare_stage and key == KEY["enter"]:
         with open(data_txt_ref_path+choice+".csv", 'r') as ref_file:
             data_txt_ref = []
