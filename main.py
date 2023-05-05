@@ -8,7 +8,6 @@ import csv
 import serial
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from modules.mc_chooser import checkArduinoPorts
 from modules.button_ import KEY
 from modules.image_process import image_writer, image_adjustment
 from modules.csv_generator import createTestFile, createResFile
